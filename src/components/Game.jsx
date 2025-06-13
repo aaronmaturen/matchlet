@@ -58,8 +58,8 @@ const Game = ({ triggerReset, onResetComplete }) => {
     const uniqueValues = Math.floor(totalCards / 3);
 
     // For cardset randomization - we'll use a larger pool of possible card values
-    // Assuming we have at least 20 images in each cardset folder
-    const maxCardValue = 20;
+    // We have 53 images in the monsters directory and 50 in animals
+    const maxCardValue = gameConfig.cardset === "monsters" ? 53 : 50;
 
     // Create an array of possible card values (1-20) and shuffle it
     const possibleValues = Array.from({ length: maxCardValue }, (_, i) => i + 1)
@@ -94,7 +94,7 @@ const Game = ({ triggerReset, onResetComplete }) => {
     }));
 
     return newCards;
-  }, [gameConfig.gridCols, gameConfig.gridRows]);
+  }, [gameConfig.gridCols, gameConfig.gridRows, gameConfig.cardset]);
 
   // Wrap moveToNextPlayer in useCallback to avoid dependency issues
   const moveToNextPlayer = useCallback(() => {

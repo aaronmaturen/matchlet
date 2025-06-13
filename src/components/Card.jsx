@@ -1,4 +1,5 @@
 import "./Card.css";
+import { useState, useEffect, useCallback } from "react";
 
 const Card = ({
   id,
@@ -10,14 +11,39 @@ const Card = ({
   isPotentialMatch,
   cardset = "monsters", // Default cardset
 }) => {
-  // Get the image path for the card value
-  const getCardImagePath = (value) => {
-    // Get all available monster images from the public directory
-    // In a real app, we would fetch this list from an API or context
-    // For now, we'll use the value as an index to select an image
-    const imagePath = `${import.meta.env.BASE_URL}cardsets/${cardset}/${value}.svg`;
-    return imagePath;
-  };
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const [imageError, setImageError] = useState(false);
+
+  // Get the image path for the card value with useCallback to avoid dependency changes
+  const getCardImagePath = useCallback((val) => {
+    return `${import.meta.env.BASE_URL}cardsets/${cardset}/${val}.svg`;
+  }, [cardset]);
+  
+  // Preload the image
+  useEffect(() => {
+    // Reset states when value or cardset changes
+    setImageLoaded(false);
+    setImageError(false);
+    
+    const img = new Image();
+    const src = getCardImagePath(value);
+    img.src = src;
+    
+    img.onload = () => {
+      setImageLoaded(true);
+      setImageError(false);
+    };
+    
+    img.onerror = () => {
+      console.error(`Failed to load image: ${src}`);
+      setImageError(true);
+    };
+    
+    return () => {
+      img.onload = null;
+      img.onerror = null;
+    };
+  }, [value, getCardImagePath]);
 
   return (
     <div className="perspective-1000 h-full w-full">
@@ -57,18 +83,19 @@ const Card = ({
           }}
         >
           <div className="flex h-full w-full items-center justify-center p-2">
-            {/* Display image instead of number */}
-            <img 
-              src={getCardImagePath(value)} 
-              alt={`Card ${value}`} 
-              className="max-h-full max-w-full object-contain"
-              onError={(e) => {
-                // Fallback to displaying the number if image fails to load
-                e.target.style.display = 'none';
-                e.target.nextSibling.style.display = 'block';
-              }}
-            />
-            <div className="font-mono text-lg hidden">{value}</div>
+            {/* Display image or fallback based on loading state */}
+            {!imageError ? (
+              <img 
+                src={getCardImagePath(value)} 
+                alt={`Card ${value}`} 
+                className={`max-h-full max-w-full object-contain ${imageLoaded ? '' : 'opacity-0'}`}
+                style={{ transition: 'opacity 0.2s ease-in' }}
+                onLoad={() => setImageLoaded(true)}
+                onError={() => setImageError(true)}
+              />
+            ) : (
+              <div className="font-mono text-lg">{value}</div>
+            )}
           </div>
         </div>
       </div>
