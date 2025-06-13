@@ -325,7 +325,7 @@ const Game = ({ triggerReset, onResetComplete }) => {
                     <div className="avatar">
                       <div className="w-12 rounded-full ring ring-primary ring-offset-2 ring-offset-base-100">
                         <img
-                          src={`/avatars/${player.avatar}`}
+                          src={`${import.meta.env.BASE_URL}avatars/${player.avatar}`}
                           alt={`${player.name}'s avatar`}
                         />
                       </div>

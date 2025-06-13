@@ -15,7 +15,7 @@ const Card = ({
     // Get all available monster images from the public directory
     // In a real app, we would fetch this list from an API or context
     // For now, we'll use the value as an index to select an image
-    const imagePath = `/cardsets/${cardset}/${value}.svg`;
+    const imagePath = `${import.meta.env.BASE_URL}cardsets/${cardset}/${value}.svg`;
     return imagePath;
   };
 

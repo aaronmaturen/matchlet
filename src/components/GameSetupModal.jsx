@@ -190,7 +190,7 @@ const GameSetupModal = ({ opened, onClose, onStartGame }) => {
                     >
                       <div className="w-8 h-8 rounded-full overflow-hidden border border-primary hover:border-accent transition-colors duration-200">
                         <img 
-                          src={`/avatars/${player.avatar}`} 
+                          src={`${import.meta.env.BASE_URL}avatars/${player.avatar}`} 
                           alt={`${player.name}'s avatar`}
                           className="w-full h-full object-cover"
                         />
