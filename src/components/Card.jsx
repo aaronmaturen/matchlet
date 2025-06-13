@@ -1,5 +1,6 @@
 import "./Card.css";
-import { useState, useEffect, useCallback } from "react";
+import { useState } from "react";
+import { getCardUrl } from "../assets";
 
 const Card = ({
   id,
@@ -8,42 +9,12 @@ const Card = ({
   isMatched,
   onClick,
   disabled,
-  isPotentialMatch,
   cardset = "monsters", // Default cardset
 }) => {
-  const [imageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
 
-  // Get the image path for the card value with useCallback to avoid dependency changes
-  const getCardImagePath = useCallback((val) => {
-    return `${import.meta.env.BASE_URL}cardsets/${cardset}/${val}.svg`;
-  }, [cardset]);
-  
-  // Preload the image
-  useEffect(() => {
-    // Reset states when value or cardset changes
-    setImageLoaded(false);
-    setImageError(false);
-    
-    const img = new Image();
-    const src = getCardImagePath(value);
-    img.src = src;
-    
-    img.onload = () => {
-      setImageLoaded(true);
-      setImageError(false);
-    };
-    
-    img.onerror = () => {
-      console.error(`Failed to load image: ${src}`);
-      setImageError(true);
-    };
-    
-    return () => {
-      img.onload = null;
-      img.onerror = null;
-    };
-  }, [value, getCardImagePath]);
+  // Get the image URL from our imported assets
+  const cardImageUrl = getCardUrl(cardset, value);
 
   return (
     <div className="perspective-1000 h-full w-full">
@@ -54,7 +25,7 @@ const Card = ({
         onClick={() => !disabled && !isFlipped && onClick(id)}
       >
         <div
-          className={`absolute inset-0 transition-all duration-300 backface-hidden ${isFlipped ? "rotate-y-180" : ""} rounded-lg border-2 ${isPotentialMatch ? "border-accent shadow-accent/40 shadow-lg" : ""} ${isMatched ? "border-success bg-success/10" : "border-primary bg-primary/10"}`}
+          className={`absolute inset-0 transition-all duration-300 backface-hidden ${isFlipped ? "rotate-y-180" : ""} rounded-lg border-2 ${isMatched ? "border-success bg-success/10" : "border-primary bg-primary/10"}`}
           style={{
             transform: isFlipped ? "rotateY(180deg)" : "",
             backfaceVisibility: "hidden",
@@ -62,9 +33,9 @@ const Card = ({
         >
           <div className="flex h-full w-full items-center justify-center">
             <div className="h-full w-full p-2">
-              <div className="h-full w-full rounded-md bg-primary/30 flex items-center justify-center">
-                <div className="h-3/4 w-3/4 rounded-full bg-secondary/30 flex items-center justify-center">
-                  <div className="h-1/2 w-1/2 rounded-full bg-accent/30"></div>
+              <div className="bg-primary/30 flex h-full w-full items-center justify-center rounded-md">
+                <div className="bg-secondary/30 flex h-3/4 w-3/4 items-center justify-center rounded-full">
+                  <div className="bg-accent/30 h-1/2 w-1/2 rounded-full"></div>
                 </div>
               </div>
             </div>
@@ -83,14 +54,12 @@ const Card = ({
           }}
         >
           <div className="flex h-full w-full items-center justify-center p-2">
-            {/* Display image or fallback based on loading state */}
-            {!imageError ? (
-              <img 
-                src={getCardImagePath(value)} 
-                alt={`Card ${value}`} 
-                className={`max-h-full max-w-full object-contain ${imageLoaded ? '' : 'opacity-0'}`}
-                style={{ transition: 'opacity 0.2s ease-in' }}
-                onLoad={() => setImageLoaded(true)}
+            {/* Display image or fallback based on availability */}
+            {cardImageUrl && !imageError ? (
+              <img
+                src={cardImageUrl}
+                alt={`Card ${value}`}
+                className="max-h-full max-w-full object-contain"
                 onError={() => setImageError(true)}
               />
             ) : (

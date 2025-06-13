@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { getAvatarUrl } from "../assets";
 
 const BOARD_SIZES = {
   xs: { cols: 3, rows: 2, label: "XS" },
@@ -190,7 +191,7 @@ const GameSetupModal = ({ opened, onClose, onStartGame }) => {
                     >
                       <div className="w-8 h-8 rounded-full overflow-hidden border border-primary hover:border-accent transition-colors duration-200">
                         <img 
-                          src={`${import.meta.env.BASE_URL}avatars/${player.avatar}`} 
+                          src={getAvatarUrl(player.avatar) || `${import.meta.env.BASE_URL}avatars/${player.avatar}`} 
                           alt={`${player.name}'s avatar`}
                           className="w-full h-full object-cover"
                         />

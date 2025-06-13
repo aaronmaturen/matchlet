@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
 import Card from "./Card";
 import GameSetupModal from "./GameSetupModal";
+import { getAvatarUrl } from "../assets";
+import "./Avatar.css";
 
 // Game component for the Wingspan game
 
@@ -16,7 +18,9 @@ const Game = ({ triggerReset, onResetComplete }) => {
     boardSize: "md",
     gridCols: 6,
     gridRows: 3,
-    players: [{ name: "Player 1", color: "primary", avatar: "0201e35304ee6e58.svg" }],
+    players: [
+      { name: "Player 1", color: "primary", avatar: "0201e35304ee6e58.svg" },
+    ],
     cardset: "monsters", // Default cardset
   });
 
@@ -44,7 +48,7 @@ const Game = ({ triggerReset, onResetComplete }) => {
     "bf36a7596b17be6d.svg",
     "d498bc72ffc72c9b.svg",
     "f0cb03da1b59b63f.svg",
-    "f20d5dc563edbac9.svg"
+    "f20d5dc563edbac9.svg",
   ];
   const [currentPlayerIndex, setCurrentPlayerIndex] = useState(0);
   const [playerScores, setPlayerScores] = useState([0]);
@@ -62,8 +66,10 @@ const Game = ({ triggerReset, onResetComplete }) => {
     const maxCardValue = gameConfig.cardset === "monsters" ? 53 : 50;
 
     // Create an array of possible card values (1-20) and shuffle it
-    const possibleValues = Array.from({ length: maxCardValue }, (_, i) => i + 1)
-      .sort(() => Math.random() - 0.5);
+    const possibleValues = Array.from(
+      { length: maxCardValue },
+      (_, i) => i + 1
+    ).sort(() => Math.random() - 0.5);
 
     // Take just the number of unique values we need from the shuffled array
     const selectedValues = possibleValues.slice(0, uniqueValues);
@@ -105,35 +111,31 @@ const Game = ({ triggerReset, onResetComplete }) => {
 
   // Helper function to determine if a card is disabled
   const isCardDisabled = (id) => {
-    const card = cards.find(card => card.id === id);
-    return card.isMatched ||
-           flippedCards.length === 3 ||
-           (flippedCards.length === 2 && !canFlipThird);
-  };
-
-  // Helper function to determine if a card is a potential match
-  const isPotentialMatch = (id) => {
-    if (flippedCards.length !== 2) return false;
-    
-    const flippedValues = flippedCards.map(cardId => {
-      const card = cards.find(card => card.id === cardId);
-      return card ? card.value : null;
-    }).filter(Boolean);
-    
-    const thisCard = cards.find(card => card.id === id);
-    return thisCard && flippedValues.includes(thisCard.value);
+    const card = cards.find((card) => card.id === id);
+    return (
+      card.isMatched ||
+      flippedCards.length === 3 ||
+      (flippedCards.length === 2 && !canFlipThird)
+    );
   };
 
   // Helper function to get the grid columns class based on grid size with responsive breakpoints
   const getGridColsClass = (cols) => {
     switch (cols) {
-      case 3: return "grid-cols-2 sm:grid-cols-3";
-      case 4: return "grid-cols-2 sm:grid-cols-3 md:grid-cols-4";
-      case 5: return "grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5";
-      case 6: return "grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6";
-      case 8: return "grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8";
-      case 9: return "grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-9";
-      default: return "grid-cols-2 sm:grid-cols-3 md:grid-cols-4";
+      case 3:
+        return "grid-cols-2 sm:grid-cols-3";
+      case 4:
+        return "grid-cols-2 sm:grid-cols-3 md:grid-cols-4";
+      case 5:
+        return "grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5";
+      case 6:
+        return "grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6";
+      case 8:
+        return "grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8";
+      case 9:
+        return "grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-9";
+      default:
+        return "grid-cols-2 sm:grid-cols-3 md:grid-cols-4";
     }
   };
 
@@ -216,52 +218,55 @@ const Game = ({ triggerReset, onResetComplete }) => {
         secondCard.value === thirdCard.value;
 
       // Use a timeout to handle the match or non-match
-      const timer = setTimeout(() => {
-        if (isMatch) {
-          // Mark the cards as matched
-          setCards(
-            cards.map((card) => {
-              if (flippedCards.includes(card.id)) {
-                return { ...card, isMatched: true };
+      const timer = setTimeout(
+        () => {
+          if (isMatch) {
+            // Mark the cards as matched
+            setCards(
+              cards.map((card) => {
+                if (flippedCards.includes(card.id)) {
+                  return { ...card, isMatched: true };
+                }
+                return card;
+              })
+            );
+
+            // Add to matched sets if not already included
+            setMatchedSets((prev) => {
+              if (!prev.includes(firstCard.value)) {
+                return [...prev, firstCard.value];
               }
-              return card;
-            })
-          );
+              return prev;
+            });
 
-          // Add to matched sets if not already included
-          setMatchedSets((prev) => {
-            if (!prev.includes(firstCard.value)) {
-              return [...prev, firstCard.value];
-            }
-            return prev;
-          });
+            // Add 1 point to score (1 point per match)
+            setScore((prev) => prev + 1);
 
-          // Add 1 point to score (1 point per match)
-          setScore((prev) => prev + 1);
+            // Add 1 point to current player's score (1 point per match)
+            setPlayerScores((prev) => {
+              const newScores = [...prev];
+              newScores[currentPlayerIndex] = newScores[currentPlayerIndex] + 1;
+              return newScores;
+            });
+          } else {
+            // If they don't match, flip them back
+            setCards(
+              cards.map((card) => {
+                if (flippedCards.includes(card.id)) {
+                  return { ...card, isFlipped: false };
+                }
+                return card;
+              })
+            );
+            moveToNextPlayer();
+          }
 
-          // Add 1 point to current player's score (1 point per match)
-          setPlayerScores((prev) => {
-            const newScores = [...prev];
-            newScores[currentPlayerIndex] = newScores[currentPlayerIndex] + 1;
-            return newScores;
-          });
-        } else {
-          // If they don't match, flip them back
-          setCards(
-            cards.map((card) => {
-              if (flippedCards.includes(card.id)) {
-                return { ...card, isFlipped: false };
-              }
-              return card;
-            })
-          );
-          moveToNextPlayer();
-        }
-
-        // Always reset flipped cards and canFlipThird after handling
-        setFlippedCards([]);
-        setCanFlipThird(false);
-      }, isMatch ? 300 : 1000);
+          // Always reset flipped cards and canFlipThird after handling
+          setFlippedCards([]);
+          setCanFlipThird(false);
+        },
+        isMatch ? 300 : 1000
+      );
 
       return () => clearTimeout(timer);
     }
@@ -309,12 +314,14 @@ const Game = ({ triggerReset, onResetComplete }) => {
   };
 
   return (
-    <div className="flex flex-col h-full w-full max-h-[calc(100vh-8rem)]">
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-4 lg:grid-cols-5 h-full overflow-auto">
+    <div className="flex h-full max-h-[calc(100vh-8rem)] w-full flex-col">
+      <div className="grid h-full grid-cols-1 gap-4 overflow-auto md:grid-cols-4 lg:grid-cols-5">
         {/* Left sidebar - Player info */}
-        <div className="md:col-span-1 overflow-y-auto">
-          <div className="rounded-lg bg-base-200 p-4 shadow-md">
-            <h2 className="mb-4 text-xl font-bubblegum text-primary">Players</h2>
+        <div className="overflow-y-auto md:col-span-1">
+          <div className="bg-base-200 rounded-lg p-4 shadow-md">
+            <h2 className="font-bubblegum text-primary mb-4 text-xl">
+              Players
+            </h2>
             <div className="space-y-4">
               {gameConfig.players.map((player, index) => (
                 <div
@@ -323,9 +330,14 @@ const Game = ({ triggerReset, onResetComplete }) => {
                 >
                   <div className="flex items-center gap-3">
                     <div className="avatar">
-                      <div className="w-12 rounded-full ring ring-primary ring-offset-2 ring-offset-base-100">
+                      <div
+                        className={`ring-primary ring-offset-base-100 w-12 rounded-full ring ring-offset-2 ${currentPlayerIndex === index ? "tw-avatar-ping" : ""}`}
+                      >
                         <img
-                          src={`${import.meta.env.BASE_URL}avatars/${player.avatar}`}
+                          src={
+                            getAvatarUrl(player.avatar) ||
+                            `${import.meta.env.BASE_URL}avatars/${player.avatar}`
+                          }
                           alt={`${player.name}'s avatar`}
                         />
                       </div>
@@ -333,20 +345,20 @@ const Game = ({ triggerReset, onResetComplete }) => {
                     <div>
                       <p className="font-schoolbell text-lg">{player.name}</p>
                       <p className="text-sm">
-                        Score: <span className="font-bold">{playerScores[index]}</span>
+                        Score:{" "}
+                        <span className="font-bold">{playerScores[index]}</span>
                       </p>
                     </div>
                   </div>
-                  {currentPlayerIndex === index && (
-                    <div className="badge badge-primary badge-lg animate-pulse">Your Turn</div>
-                  )}
                 </div>
               ))}
             </div>
           </div>
 
-          <div className="mt-6 rounded-lg bg-base-200 p-4 shadow-md">
-            <h2 className="mb-4 text-xl font-bubblegum text-primary">Game Info</h2>
+          <div className="bg-base-200 mt-6 rounded-lg p-4 shadow-md">
+            <h2 className="font-bubblegum text-primary mb-4 text-xl">
+              Game Info
+            </h2>
             <div className="space-y-2">
               <p className="font-comic text-lg">
                 Moves: <span className="font-bold">{moves}</span>
@@ -356,7 +368,7 @@ const Game = ({ triggerReset, onResetComplete }) => {
         </div>
 
         {/* Main game area */}
-        <div className="md:col-span-3 lg:col-span-4 overflow-y-auto p-4 bg-base-200/50 rounded-lg shadow-inner h-full">
+        <div className="bg-base-200/50 h-full overflow-y-auto rounded-lg p-4 shadow-inner md:col-span-3 lg:col-span-4">
           <div
             className={`grid gap-4 ${getGridColsClass(gameConfig.gridCols)} w-full auto-rows-min pb-4`}
           >
@@ -369,12 +381,11 @@ const Game = ({ triggerReset, onResetComplete }) => {
                 isMatched={card.isMatched}
                 onClick={handleCardClick}
                 disabled={isCardDisabled(card.id)}
-                isPotentialMatch={isPotentialMatch(card.id)}
                 cardset={gameConfig.cardset}
               />
             ))}
           </div>
-          
+
           {canFlipThird && flippedCards.length === 2 && (
             <div className="toast toast-end toast-bottom z-50">
               <div className="alert alert-success shadow-lg">
@@ -392,7 +403,7 @@ const Game = ({ triggerReset, onResetComplete }) => {
                       d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
                     />
                   </svg>
-                  <span className="font-bold font-comic">
+                  <span className="font-comic font-bold">
                     Cards match! You can flip a third card now.
                   </span>
                 </div>

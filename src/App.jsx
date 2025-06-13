@@ -100,7 +100,7 @@ function App() {
             </label>
             <ul
               tabIndex={0}
-              className="dropdown-content menu bg-base-100 rounded-box z-[1] max-h-96 w-52 overflow-y-auto p-2 shadow"
+              className="dropdown-content menu bg-base-100 rounded-box z-[1] max-h-96 w-96 overflow-x-auto p-2 shadow"
             >
               {childFriendlyThemes.map((theme) => (
                 <li key={theme}>
