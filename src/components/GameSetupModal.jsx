@@ -49,7 +49,7 @@ const GameSetupModal = ({ opened, onClose, onStartGame }) => {
   useEffect(() => {
     // In a real app, we would fetch this from an API
     // For now, we have monsters and animals cardsets
-    setCardsets(["monsters", "animals"]);
+    setCardsets(["monsters", "animals", "symbols"]);
   }, []);
 
   const handlePlayerCountChange = (value) => {

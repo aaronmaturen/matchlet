@@ -4,6 +4,7 @@
 // Import all monster card SVGs
 const monsterCardImports = import.meta.glob('./cardsets/monsters/*.svg', { eager: true });
 const animalCardImports = import.meta.glob('./cardsets/animals/*.svg', { eager: true });
+const symbolCardImports = import.meta.glob('./cardsets/symbols/*.svg', { eager: true });
 const avatarImports = import.meta.glob('./avatars/*.svg', { eager: true });
 
 // Convert imports to usable maps
@@ -21,6 +22,13 @@ export const animalCards = Object.fromEntries(
   })
 );
 
+export const symbolCards = Object.fromEntries(
+  Object.entries(symbolCardImports).map(([path, module]) => {
+    const filename = path.split('/').pop().replace('.svg', '');
+    return [filename, module.default];
+  })
+);
+
 export const avatars = Object.fromEntries(
   Object.entries(avatarImports).map(([path, module]) => {
     const filename = path.split('/').pop();
@@ -30,8 +38,10 @@ export const avatars = Object.fromEntries(
 
 // Helper function to get the URL for a card
 export function getCardUrl(cardset, value) {
-  const collection = cardset === 'monsters' ? monsterCards : animalCards;
-  return collection[value] || null;
+  const collection = cardset === 'monsters' ? monsterCards :
+                      cardset === 'animals' ? animalCards :
+                      cardset === 'symbols' ? symbolCards : {};
+      return collection[value] || null;
 }
 
 // Helper function to get the URL for an avatar
