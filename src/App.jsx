@@ -78,7 +78,7 @@ function App() {
     <div className="bg-base-100 font-comic flex min-h-screen flex-col">
       {/* Header */}
       <header className="bg-base-100 sticky top-0 z-10 flex w-full items-center justify-between border-b p-4">
-        <h1 className="font-bubblegum text-primary text-3xl">Wingspan</h1>
+        <h1 className="font-bubblegum text-primary text-3xl">Matchlet</h1>
         <div className="flex gap-2">
           <div className="dropdown dropdown-end">
             <label tabIndex={0} className="btn btn-ghost">

@@ -4,7 +4,7 @@ import GameSetupModal from "./GameSetupModal";
 import { getAvatarUrl } from "../assets";
 import "./Avatar.css";
 
-// Game component for the Wingspan game
+// Game component for the Matchlet game
 
 const Game = ({ triggerReset, onResetComplete }) => {
   const [cards, setCards] = useState([]);

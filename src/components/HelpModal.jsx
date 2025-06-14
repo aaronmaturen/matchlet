@@ -7,7 +7,7 @@ const HelpModal = ({ opened, onClose }) => {
     <div className="modal modal-open">
       <div className="modal-box font-comic bg-base-100 max-w-3xl p-6">
         <h3 className="font-bubblegum text-primary mb-5 text-3xl">
-          Let's Play Wingspan!
+          Let's Play Matchlet!
         </h3>
 
         <div className="space-y-6 text-left">
