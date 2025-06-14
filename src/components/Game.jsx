@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import Card from "./Card";
 import GameSetupModal from "./GameSetupModal";
-import { getAvatarUrl } from "../assets";
+import { getAvatarUrl, getMaxCardId } from "../assets";
 import "./Avatar.css";
 
 // Game component for the Matchlet game
@@ -21,35 +21,9 @@ const Game = ({ triggerReset, onResetComplete }) => {
     players: [
       { name: "Player 1", color: "primary", avatar: "0201e35304ee6e58.svg" },
     ],
-    cardset: "monsters", // Default cardset
+    cardset: "emojis", // Default cardset
   });
 
-  // Available avatars in public/avatars directory
-  // Using underscore prefix to indicate intentionally unused variable
-  const _avatars = [
-    "0201e35304ee6e58.svg",
-    "069d87858be0162d.svg",
-    "19615c04fd12819a.svg",
-    "19e4a684452bef8c.svg",
-    "28924ef7f7f679e8.svg",
-    "3258508ba5a1be0f.svg",
-    "3f459c50f96a77a4.svg",
-    "69e054956e831eb1.svg",
-    "6d6a2afc46152f67.svg",
-    "776003a115f3458d.svg",
-    "7cede0e7a110b709.svg",
-    "854fad09bd8676d4.svg",
-    "97ce7cd8b8e90dbd.svg",
-    "9a8e6e3027d89157.svg",
-    "9ac234827d3666fb.svg",
-    "a033f14526b48510.svg",
-    "a41d42a2a72908db.svg",
-    "a606efd924376295.svg",
-    "bf36a7596b17be6d.svg",
-    "d498bc72ffc72c9b.svg",
-    "f0cb03da1b59b63f.svg",
-    "f20d5dc563edbac9.svg",
-  ];
   const [currentPlayerIndex, setCurrentPlayerIndex] = useState(0);
   const [playerScores, setPlayerScores] = useState([0]);
 
@@ -62,8 +36,8 @@ const Game = ({ triggerReset, onResetComplete }) => {
     const uniqueValues = Math.floor(totalCards / 3);
 
     // For cardset randomization - we'll use a larger pool of possible card values
-    // We have 53 images in the monsters directory and 50 in animals
-    const maxCardValue = gameConfig.cardset === "monsters" ? 53 : 50;
+    const maxCardValue = getMaxCardId(gameConfig.cardset);
+    console.log("Max card value for cardset:", gameConfig.cardset, " is:", maxCardValue);
 
     // Create an array of possible card values (1-20) and shuffle it
     const possibleValues = Array.from(

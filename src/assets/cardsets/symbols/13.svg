@@ -1,7 +1,5 @@
-<?xml version="1.0" encoding="utf-8"?>
-<svg width="800px" height="800px" viewBox="0 0 800 800" xmlns="http://www.w3.org/2000/svg">
-<rect x="659" y="45" width="107" height="216" fill="#00103F" fill-opacity="0.7" />
-<circle cx="258" cy="313" r="48" fill="#0013C2" fill-opacity="0.7" />
-<rect x="101" y="281" width="84" height="201" fill="#004205" fill-opacity="0.7" />
-<rect x="571" y="497" width="48" height="117" fill="#0012A3" fill-opacity="0.7" />
+<svg width="800" height="800" viewBox="0 0 800 800" xmlns="http://www.w3.org/2000/svg">
+  <text x="50%" y="50%" font-size="700" text-anchor="middle" dominant-baseline="central" font-family="Noto Color Emoji">
+    🔷
+  </text>
 </svg>

@@ -42,14 +42,13 @@ const GameSetupModal = ({ opened, onClose, onStartGame }) => {
   const [players, setPlayers] = useState([
     { name: "Player 1", avatar: AVATARS[Math.floor(Math.random() * AVATARS.length)] },
   ]);
-  const [cardsets, setCardsets] = useState(["monsters"]);
-  const [selectedCardset, setSelectedCardset] = useState("monsters");
+  const [cardsets, setCardsets] = useState(["emojis"]);
+  const [selectedCardset, setSelectedCardset] = useState("emojis");
   
   // Fetch available cardsets
   useEffect(() => {
     // In a real app, we would fetch this from an API
-    // For now, we have monsters and animals cardsets
-    setCardsets(["monsters", "animals", "symbols"]);
+    setCardsets(["animals", "emojis", "monsters", "symbols", "emoji faces", "mixed shapes"]);
   }, []);
 
   const handlePlayerCountChange = (value) => {

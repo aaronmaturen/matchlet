@@ -1,6 +1,5 @@
-<?xml version="1.0" encoding="utf-8"?>
-<svg width="800px" height="800px" viewBox="0 0 800 800" xmlns="http://www.w3.org/2000/svg">
-<rect x="181" y="148" width="214" height="57" fill="#001EC9" fill-opacity="0.7" />
-<rect x="181" y="536" width="114" height="186" fill="#001C0D" fill-opacity="0.7" />
-<circle cx="369" cy="639" r="148" fill="#006891" fill-opacity="0.7" />
+<svg width="800" height="800" viewBox="0 0 800 800" xmlns="http://www.w3.org/2000/svg">
+  <text x="50%" y="50%" font-size="700" text-anchor="middle" dominant-baseline="central" font-family="Noto Color Emoji">
+    ⭐
+  </text>
 </svg>
