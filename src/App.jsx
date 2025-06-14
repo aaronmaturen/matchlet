@@ -1,11 +1,14 @@
 import { useState, useEffect } from "react";
-import Game from "./components/Game";
+import Game from "./components/Game.tsx";
 import HelpModal from "./components/HelpModal";
+import GameModeSelector from "./components/GameModeSelector";
 import "./App.css";
 
 function App() {
   const [resetGame, setResetGame] = useState(false);
   const [helpModalOpened, setHelpModalOpened] = useState(false);
+  const [gameModeModalOpened, setGameModeModalOpened] = useState(false);
+  const [gameMode, setGameMode] = useState(null); // null, { mode: 'local' } or { mode: 'online', roomId: '123', isHost: true }
 
   // Child-friendly themes subset
   const childFriendlyThemes = [
@@ -71,6 +74,13 @@ function App() {
   const [, setThemeState] = useState(getCurrentTheme());
 
   const handleNewGame = () => {
+    setGameModeModalOpened(true);
+  };
+
+  const handleModeSelect = (mode) => {
+    setGameMode(mode);
+    setGameModeModalOpened(false);
+    // Trigger reset to start the game with the selected mode
     setResetGame(true);
   };
 
@@ -137,12 +147,19 @@ function App() {
         <Game
           triggerReset={resetGame}
           onResetComplete={() => setResetGame(false)}
+          gameMode={gameMode}
         />
       </main>
 
       <HelpModal
         opened={helpModalOpened}
         onClose={() => setHelpModalOpened(false)}
+      />
+
+      <GameModeSelector
+        opened={gameModeModalOpened}
+        onClose={() => setGameModeModalOpened(false)}
+        onSelectMode={handleModeSelect}
       />
 
       {/* Footer */}
