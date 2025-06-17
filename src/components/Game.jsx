@@ -133,8 +133,8 @@ const Game = ({ triggerReset, onResetComplete }) => {
     // Add to flipped cards
     setFlippedCards([...flippedCards, id]);
 
-    // Increment moves if this is the first or third card
-    if (flippedCards.length === 0 || flippedCards.length === 2) {
+    // Increment moves if this is the first
+    if (flippedCards.length === 0) {
       setMoves(moves + 1);
     }
   };
