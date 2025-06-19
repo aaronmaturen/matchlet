@@ -37,7 +37,6 @@ const Game = ({ triggerReset, onResetComplete }) => {
 
     // For cardset randomization - we'll use a larger pool of possible card values
     const maxCardValue = getMaxCardId(gameConfig.cardset);
-    console.log("Max card value for cardset:", gameConfig.cardset, " is:", maxCardValue);
 
     // Create an array of possible card values (1-20) and shuffle it
     const possibleValues = Array.from(
