@@ -1,4 +1,16 @@
-import { ConnectionStatus } from './WebRTCTypes';
+import { ConnectionStatus, RoomState } from "./WebRTCTypes";
+
+export interface GameProps {
+  triggerReset: boolean;
+  onResetComplete: () => void;
+  gameMode?: {
+    mode: string;
+    roomId?: string;
+    isHost?: boolean;
+  };
+  initialGameConfig?: GameConfigType;
+  onBackToMenu?: () => void;
+}
 
 export interface CardType {
   id: number;
@@ -20,6 +32,9 @@ export interface OnlineStatusType {
   players: string[];
   error: string | null;
   connectionStatus?: ConnectionStatus;
+  localPlayerId?: string | null;
+  playersInfo?: Record<string, { name: string; avatar: string }>;
+  roomState?: RoomState;
 }
 
 export interface GameConfigType {
@@ -28,10 +43,4 @@ export interface GameConfigType {
   gridRows: number;
   players: PlayerType[];
   cardset: string;
-}
-
-export interface GameModeType {
-  mode: string;
-  roomId?: string;
-  isHost?: boolean;
 }

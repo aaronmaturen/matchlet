@@ -15,9 +15,19 @@ export interface ConnectionStatus {
 }
 
 /**
+ * Room state enum
+ */
+export enum RoomState {
+  WAITING = "waiting",
+  PLAYING = "playing",
+  FINISHED = "finished"
+}
+
+/**
  * Game state that can be synchronized between peers
  */
 export interface GameState {
+  roomState?: RoomState;
   cards?: Array<{
     id: number;
     value: number;
@@ -27,8 +37,10 @@ export interface GameState {
   flippedCards?: number[];
   matchedSets?: number[];
   playerScores?: number[];
-  currentPlayerIndex?: number;
+  currentPlayerIndex?: number; // Keep for backwards compatibility
+  currentPlayerId?: string; // New player ID-based turn system
   moves?: number;
+  playerOrder?: string[];
 }
 
 /**
@@ -67,6 +79,23 @@ export interface IWebRTCService {
    * @returns Current connection status
    */
   getConnectionStatus(): ConnectionStatus;
+  
+  /**
+   * Check if any data channel is open for communication
+   * @returns Boolean indicating if at least one data channel is open
+   */
+  isDataChannelOpen(): boolean;
+  
+  /**
+   * Request game state from the host
+   */
+  requestGameState(): void;
+  
+  /**
+   * Set local player information to share with peers
+   * @param playerInfo Player information object with name and avatar
+   */
+  setLocalPlayerInfo(playerInfo: { name: string; avatar: string }): void;
 
   /**
    * Event handler for when a player joins
@@ -92,6 +121,17 @@ export interface IWebRTCService {
    * Event handler for connection status changes
    */
   onConnectionStatusChange: ((status: ConnectionStatus) => void) | null;
+
+  /**
+   * Event handler for when player info is received from a peer
+   */
+  onPlayerInfoUpdate: ((userId: string, playerInfo: { name: string; avatar: string }) => void) | null;
+
+  /**
+   * Set local player information to share with peers
+   * @param playerInfo Player information object with name and avatar
+   */
+  setLocalPlayerInfo(playerInfo: { name: string; avatar: string }): void;
 }
 
 /**

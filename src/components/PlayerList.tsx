@@ -1,53 +1,65 @@
-import React from 'react';
-import { getAvatarUrl } from "../assets";
-import { PlayerType } from '../types/GameTypes';
+import React from "react";
+import { PlayerType } from "../types/GameTypes";
+import PlayerRow from "./PlayerRow";
 
 interface PlayerListProps {
   players: PlayerType[];
   playerScores: number[];
   currentPlayerIndex: number;
+  currentPlayerId?: string | null;
+  gameMode?: {
+    mode: string;
+    isHost?: boolean;
+  };
+  onlineStatus?: {
+    isHost: boolean;
+    localPlayerId?: string;
+    players?: string[];
+  };
 }
 
-const PlayerList: React.FC<PlayerListProps> = ({ 
-  players, 
-  playerScores, 
-  currentPlayerIndex 
+const PlayerList: React.FC<PlayerListProps> = ({
+  players,
+  playerScores,
+  currentPlayerIndex,
+  currentPlayerId,
+  gameMode,
+  onlineStatus,
 }) => {
   return (
     <div>
-      <h2 className="font-bubblegum text-primary mb-4 text-xl">
-        Players
-      </h2>
+      <h2 className="font-bubblegum text-primary mb-4 text-xl">Players</h2>
       <div className="space-y-4">
-        {players.map((player, index) => (
-          <div
-            key={index}
-            className={`flex items-center justify-between rounded-lg p-3 ${currentPlayerIndex === index ? "bg-base-300 shadow-md" : ""}`}
-          >
-            <div className="flex items-center gap-3">
-              <div className="avatar">
-                <div
-                  className={`ring-primary ring-offset-base-100 w-12 rounded-full ring ring-offset-2 ${currentPlayerIndex === index ? "tw-avatar-ping" : ""}`}
-                >
-                  <img
-                    src={
-                      getAvatarUrl(player.avatar) ||
-                      `${import.meta.env.BASE_URL || "/"}avatars/${player.avatar}`
-                    }
-                    alt={`${player.name}'s avatar`}
-                  />
-                </div>
-              </div>
-              <div>
-                <p className="font-schoolbell text-lg">{player.name}</p>
-                <p className="text-sm">
-                  Score:{" "}
-                  <span className="font-bold">{playerScores[index]}</span>
-                </p>
-              </div>
-            </div>
-          </div>
-        ))}
+        {players.map((player, index) => {
+          let isCurrentPlayer = false;
+          let isLocalPlayer = false;
+          let isHost = false;
+
+          if (gameMode?.mode === "online") {
+            // In online mode, use player IDs for turn indication
+            isCurrentPlayer = currentPlayerId === player.id;
+            isLocalPlayer = player.id === onlineStatus?.localPlayerId;
+            isHost = isLocalPlayer && onlineStatus?.isHost;
+            
+          } else {
+            // In local mode, use index-based logic
+            isCurrentPlayer = currentPlayerIndex === index;
+            isLocalPlayer = false;
+            isHost = false;
+          }
+          
+          return (
+            <PlayerRow
+              key={player.id || index}
+              name={player.name}
+              avatar={player.avatar}
+              score={playerScores[index]}
+              isCurrentPlayer={isCurrentPlayer}
+              isLocal={isLocalPlayer}
+              isHost={isHost}
+            />
+          );
+        })}
       </div>
     </div>
   );

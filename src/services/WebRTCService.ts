@@ -21,14 +21,15 @@ class WebRTCService implements IWebRTCService {
   private roomId: string | null = null;
   private isHost: boolean = false;
   private gameState: GameState | null = null;
+  private localPlayerInfo: { name: string; avatar: string } | null = null;
 
   // Event handlers
   public onPlayerJoined: ((userId: string) => void) | null = null;
   public onPlayerLeft: ((userId: string) => void) | null = null;
   public onGameStateUpdate: ((state: GameState) => void) | null = null;
   public onConnectionEstablished: ((userId: string) => void) | null = null;
-  public onConnectionStatusChange: ((status: ConnectionStatus) => void) | null =
-    null;
+  public onConnectionStatusChange: ((status: ConnectionStatus) => void) | null = null;
+  public onPlayerInfoUpdate: ((userId: string, playerInfo: { name: string; avatar: string }) => void) | null = null;
 
   // Connection status tracking
   private connectionStatus: ConnectionStatus = {
@@ -79,6 +80,7 @@ class WebRTCService implements IWebRTCService {
       reconnectionDelay: this.reconnectDelay,
       timeout: 10000,
       autoConnect: true,
+      transports: ['websocket', 'polling'], // Prefer WebSocket but allow polling fallback
     });
 
     // Set up socket event listeners
@@ -171,7 +173,8 @@ class WebRTCService implements IWebRTCService {
     });
 
     this.socket.on(SignalingEvents.USER_CONNECTED, (userId: string) => {
-      console.log(`User connected: ${userId}`);
+      console.log(`🔥 WebRTC: USER_CONNECTED event received for userId: ${userId}`);
+      console.log(`🔥 WebRTC: My local user ID: ${this.localUserId}`);
       this.createPeerConnection(userId);
     });
 
@@ -188,8 +191,10 @@ class WebRTCService implements IWebRTCService {
     });
 
     this.socket.on(SignalingEvents.EXISTING_USERS, (userIds: string[]) => {
-      console.log("Existing users:", userIds);
+      console.log("🔥 WebRTC: EXISTING_USERS event received:", userIds);
+      console.log(`🔥 WebRTC: My local user ID: ${this.localUserId}`);
       userIds.forEach((userId) => {
+        console.log(`🔥 WebRTC: Creating peer connection for existing user: ${userId}`);
         this.createPeerConnection(userId);
       });
     });
@@ -246,6 +251,9 @@ class WebRTCService implements IWebRTCService {
   private async createPeerConnection(userId: string): Promise<void> {
     try {
       const peerConnection = new RTCPeerConnection(this.iceServers);
+      
+      // Store the peer connection first before setting up data channels
+      this.peerConnections[userId] = peerConnection;
 
       // Set up data channel
       if (this.isHost) {
@@ -329,8 +337,12 @@ class WebRTCService implements IWebRTCService {
         }
       }
 
+      console.log("🔥 WebRTC: About to call onPlayerJoined for userId:", userId);
       if (this.onPlayerJoined) {
+        console.log("🔥 WebRTC: Calling onPlayerJoined callback");
         this.onPlayerJoined(userId);
+      } else {
+        console.log("🔥 WebRTC: onPlayerJoined callback is null!");
       }
     } catch (error) {
       console.error("Error creating peer connection:", error);
@@ -344,7 +356,32 @@ class WebRTCService implements IWebRTCService {
    */
   private setupDataChannel(dataChannel: RTCDataChannel, userId: string): void {
     dataChannel.onopen = () => {
-      console.log(`Data channel with ${userId} opened`);
+      console.log(`🔥 WebRTC: Data channel with ${userId} opened`);
+      console.log(`🔥 WebRTC: Local player info available:`, !!this.localPlayerInfo, this.localPlayerInfo);
+      console.log(`🔥 WebRTC: Local user ID:`, this.localUserId);
+      
+      // Send local player info when data channel opens
+      if (this.localPlayerInfo && this.localUserId) {
+        try {
+          const playerInfoMessage = {
+            type: "playerInfo",
+            playerInfo: this.localPlayerInfo,
+            userId: this.localUserId
+          };
+          console.log(`🔥 WebRTC: Sending player info to ${userId}:`, playerInfoMessage);
+          dataChannel.send(JSON.stringify(playerInfoMessage));
+          console.log(`🔥 WebRTC: Successfully sent player info to ${userId}`);
+        } catch (error) {
+          console.error(`🔥 WebRTC: Failed to send player info to ${userId}:`, error);
+        }
+      } else {
+        console.log(`🔥 WebRTC: No local player info to send to ${userId} yet - will send when available`);
+      }
+      
+      // Trigger connection established callback
+      if (this.onConnectionEstablished) {
+        this.onConnectionEstablished(userId);
+      }
     };
 
     dataChannel.onclose = () => {
@@ -354,11 +391,30 @@ class WebRTCService implements IWebRTCService {
     dataChannel.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
+        console.log(`🔥 WebRTC: Received data from ${userId}:`, data);
+
         if (data.type === "gameState" && this.onGameStateUpdate) {
+          console.log(`🔥 WebRTC: Processing game state update from ${userId}`);
           this.onGameStateUpdate(data.state);
+        } else if (data.type === "playerInfo" && this.onPlayerInfoUpdate) {
+          console.log(`🔥 WebRTC: Processing player info update from ${userId}:`, data.playerInfo);
+          this.onPlayerInfoUpdate(userId, data.playerInfo);
+        } else if (data.type === "requestGameState" && this.isHost && this.gameState) {
+          // If we're the host and we have game state, send it to the requester
+          console.log('🔥 WebRTC: Host received game state request, sending current state');
+          if (dataChannel.readyState === "open") {
+            dataChannel.send(
+              JSON.stringify({
+                type: "gameState",
+                state: this.gameState,
+              })
+            );
+          }
+        } else {
+          console.log(`🔥 WebRTC: Unknown message type from ${userId}:`, data.type);
         }
       } catch (error) {
-        console.error("Error parsing message:", error);
+        console.error("🔥 WebRTC: Error parsing message:", error);
       }
     };
 
@@ -453,25 +509,26 @@ class WebRTCService implements IWebRTCService {
       }
     });
   }
-
-  /**
-   * Update connection status and trigger event
-   * @param status Partial connection status to update
-   */
-  private updateConnectionStatus(status: Partial<ConnectionStatus>): void {
-    this.connectionStatus = { ...this.connectionStatus, ...status };
-
-    if (this.onConnectionStatusChange) {
-      this.onConnectionStatusChange(this.connectionStatus);
-    }
-  }
-
-  /**
-   * Get current connection status
-   * @returns Current connection status
-   */
-  getConnectionStatus(): ConnectionStatus {
-    return { ...this.connectionStatus };
+  
+  setLocalPlayerInfo(playerInfo: { name: string; avatar: string }): void {
+    this.localPlayerInfo = playerInfo;
+    
+    // Broadcast player info to all connected peers
+    Object.keys(this.peerConnections).forEach((userId) => {
+      const peerConnection = this.peerConnections[userId];
+      if (
+        peerConnection.dataChannel &&
+        peerConnection.dataChannel.readyState === "open"
+      ) {
+        peerConnection.dataChannel.send(
+          JSON.stringify({
+            type: "playerInfo",
+            playerInfo,
+            userId: this.localUserId
+          })
+        );
+      }
+    });
   }
 
   /**
@@ -536,6 +593,89 @@ class WebRTCService implements IWebRTCService {
       connecting: false,
       error: null,
       reconnectAttempt: 0,
+    });
+  }
+
+  /**
+   * Update connection status and trigger callback if available
+   * @param status Partial connection status to update
+   */
+  private updateConnectionStatus(status: Partial<ConnectionStatus>): void {
+    // Update the connection status with the new values
+    this.connectionStatus = {
+      ...this.connectionStatus,
+      ...status
+    };
+
+    // Trigger the callback if available
+    if (this.onConnectionStatusChange) {
+      this.onConnectionStatusChange(this.connectionStatus);
+    }
+  }
+
+  /**
+   * Get current connection status
+   * @returns Current connection status
+   */
+  getConnectionStatus(): ConnectionStatus {
+    return { ...this.connectionStatus };
+  }
+
+  /**
+   * Check if any data channel is open for communication
+   * @returns Boolean indicating if at least one data channel is open
+   */
+  isDataChannelOpen(): boolean {
+    return Object.values(this.peerConnections).some(
+      (pc) => pc.dataChannel && pc.dataChannel.readyState === "open"
+    );
+  }
+
+  /**
+   * Set local player information to share with peers
+   * @param playerInfo Player information object with name and avatar
+   */
+  setLocalPlayerInfo(playerInfo: { name: string; avatar: string }): void {
+    console.log("🔥 WebRTC: setLocalPlayerInfo called with:", playerInfo);
+    this.localPlayerInfo = playerInfo;
+    
+    // Broadcast player info to all connected peers immediately
+    console.log("🔥 WebRTC: Broadcasting player info after setting it");
+    this.broadcastPlayerInfo();
+  }
+
+  /**
+   * Broadcast local player info to all connected peers
+   */
+  broadcastPlayerInfo(): void {
+    if (!this.localPlayerInfo || !this.localUserId) {
+      console.log("🔥 WebRTC: Cannot broadcast - missing info. localPlayerInfo:", !!this.localPlayerInfo, "localUserId:", this.localUserId);
+      return;
+    }
+
+    console.log("🔥 WebRTC: Broadcasting player info to all peers:", this.localPlayerInfo);
+    console.log("🔥 WebRTC: Current peer connections:", Object.keys(this.peerConnections));
+    
+    Object.entries(this.peerConnections).forEach(([userId, peerConnection]) => {
+      const dataChannel = peerConnection.dataChannel;
+      console.log(`🔥 WebRTC: Checking data channel with ${userId} - exists:`, !!dataChannel, "state:", dataChannel?.readyState);
+      
+      if (dataChannel && dataChannel.readyState === "open") {
+        try {
+          const message = {
+            type: "playerInfo",
+            playerInfo: this.localPlayerInfo,
+            userId: this.localUserId
+          };
+          console.log(`🔥 WebRTC: Sending player info to ${userId}:`, message);
+          dataChannel.send(JSON.stringify(message));
+          console.log(`🔥 WebRTC: Successfully sent player info to ${userId}`);
+        } catch (error) {
+          console.error(`🔥 WebRTC: Failed to send player info to ${userId}:`, error);
+        }
+      } else {
+        console.log(`🔥 WebRTC: Data channel with ${userId} not ready (state: ${dataChannel?.readyState}), will send when opened`);
+      }
     });
   }
 }

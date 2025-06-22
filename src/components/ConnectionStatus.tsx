@@ -1,5 +1,5 @@
-import React from 'react';
-import { ConnectionStatus as ConnectionStatusType } from '../types/WebRTCTypes';
+import React from "react";
+import { ConnectionStatus as ConnectionStatusType } from "../types/WebRTCTypes";
 
 interface ConnectionStatusProps {
   connectionStatus?: ConnectionStatusType;
@@ -7,37 +7,40 @@ interface ConnectionStatusProps {
   error: string | null;
 }
 
-const ConnectionStatus: React.FC<ConnectionStatusProps> = ({ 
-  connectionStatus, 
-  roomId, 
-  error 
+const ConnectionStatus: React.FC<ConnectionStatusProps> = ({
+  connectionStatus,
+  roomId,
+  error,
 }) => {
   if (!roomId) return null;
 
   return (
-    <div className="tw-mt-3">
-      <p className="font-comic text-lg">Room: <span className="tw-badge tw-badge-outline">{roomId}</span></p>
-      
+    <div className="mt-3">
+      <p className="font-comic text-lg">
+        Room: <span className="badge badge-outline">{roomId}</span>
+      </p>
+
       {/* Connection Status Badge */}
-      <div className="tw-flex tw-items-center tw-mt-2">
-        <span className="tw-mr-2">Status:</span>
+      <div className="mt-2 flex items-center">
+        <span className="mr-2">Status:</span>
         {connectionStatus?.connected ? (
-          <span className="tw-badge tw-badge-success">Connected</span>
+          <span className="badge badge-success">Connected</span>
         ) : (
-          <span className="tw-badge tw-badge-error">Disconnected</span>
+          <span className="badge badge-error">Disconnected</span>
         )}
       </div>
-      
+
       {/* Reconnection Attempts */}
       {connectionStatus?.reconnecting && (
-        <p className="tw-text-sm tw-mt-1">
-          Reconnecting... Attempt {connectionStatus.reconnectAttempt}/{connectionStatus.maxReconnectAttempts}
+        <p className="mt-1 text-sm">
+          Reconnecting... Attempt {connectionStatus.reconnectAttempt}/
+          {connectionStatus.maxReconnectAttempts}
         </p>
       )}
-      
+
       {/* Connection Error */}
       {error && (
-        <div className="tw-alert tw-alert-error tw-mt-2 tw-p-2 tw-text-sm">
+        <div className="alert alert-error mt-2 p-2 text-sm">
           <span>{error}</span>
         </div>
       )}

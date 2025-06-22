@@ -1,17 +1,18 @@
 import { useState, useEffect } from "react";
 import Game from "./components/Game.tsx";
 import HelpModal from "./components/HelpModal";
-import GameModeSelector from "./components/GameModeSelector";
+import UnifiedGameSetupModal from "./components/UnifiedGameSetupModal";
 import "./App.css";
 
 function App() {
   const [resetGame, setResetGame] = useState(false);
   const [helpModalOpened, setHelpModalOpened] = useState(false);
-  const [gameModeModalOpened, setGameModeModalOpened] = useState(false);
+  const [gameModeModalOpened, setGameModeModalOpened] = useState(true); // Open by default
   const [gameMode, setGameMode] = useState(null); // null, { mode: 'local' } or { mode: 'online', roomId: '123', isHost: true }
+  const [gameConfig, setGameConfig] = useState(null); // Store the game configuration
 
   // Child-friendly themes subset
-  const childFriendlyThemes = [
+  const themeList = [
     "light",
     "dark",
     "cupcake",
@@ -77,10 +78,11 @@ function App() {
     setGameModeModalOpened(true);
   };
 
-  const handleModeSelect = (mode) => {
+  const handleGameSetup = (mode, config) => {
     setGameMode(mode);
+    setGameConfig(config); // Store the game configuration
     setGameModeModalOpened(false);
-    // Trigger reset to start the game with the selected mode
+    // Trigger reset to start the game with the selected mode and config
     setResetGame(true);
   };
 
@@ -112,7 +114,7 @@ function App() {
               tabIndex={0}
               className="dropdown-content menu bg-base-100 rounded-box z-[1] max-h-96 w-96 overflow-x-auto p-2 shadow"
             >
-              {childFriendlyThemes.map((theme) => (
+              {themeList.map((theme) => (
                 <li key={theme}>
                   <button
                     className={`font-comic ${getCurrentTheme() === theme ? "active" : ""}`}
@@ -143,11 +145,13 @@ function App() {
       </header>
 
       {/* Main content */}
-      <main className="flex flex-1 overflow-auto p-0">
+      <main className="p-2">
         <Game
           triggerReset={resetGame}
           onResetComplete={() => setResetGame(false)}
           gameMode={gameMode}
+          initialGameConfig={gameConfig}
+          onBackToMenu={handleNewGame}
         />
       </main>
 
@@ -156,10 +160,11 @@ function App() {
         onClose={() => setHelpModalOpened(false)}
       />
 
-      <GameModeSelector
+      <UnifiedGameSetupModal
         opened={gameModeModalOpened}
         onClose={() => setGameModeModalOpened(false)}
-        onSelectMode={handleModeSelect}
+        onStartGame={handleGameSetup}
+        initialStep="mode"
       />
 
       {/* Footer */}
